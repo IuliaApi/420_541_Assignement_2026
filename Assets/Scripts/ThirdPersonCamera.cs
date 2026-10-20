@@ -34,7 +34,6 @@ public class ThirdPersonCamera : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // Initialize orientation from current camera transform
         Vector3 angles = transform.eulerAngles;
         currentYaw = angles.y;
         currentPitch = angles.x;
@@ -42,23 +41,19 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void LateUpdate()
     {
-        if (target == null) return;
+        if (target == null || (GameManager.Instance != null && GameManager.Instance.Paused)) return;
 
-        // 1. Gather mouse input
         float mouseX = Input.GetAxis("Mouse X") * sensitivityX;
         float mouseY = Input.GetAxis("Mouse Y") * sensitivityY;
 
         currentYaw += mouseX;
-        // Invert vertical input so pushing mouse up tilts camera up
         currentPitch -= mouseY;
         currentPitch = Mathf.Clamp(currentPitch, minPitch, maxPitch);
 
-        // 2. Calculate target rotation & position
         Quaternion targetRotation = Quaternion.Euler(currentPitch, currentYaw, 0f);
         Vector3 focusPoint = target.position + targetOffset;
         Vector3 desiredPosition = focusPoint - (targetRotation * Vector3.forward * distance);
 
-        // 3. Smoothly interpolate position and apply rotation
         transform.position = Vector3.SmoothDamp(transform.position, desiredPosition, ref currentVelocity, smoothTime);
         transform.LookAt(focusPoint);
     }
